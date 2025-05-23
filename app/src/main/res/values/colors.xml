@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="beigeBackground">#F5F2E7</color>
+    <color name="softBeige">#EDE0D4</color>
+    <color name="primaryColor">#D4A373</color>
+    <color name="secondaryColor">#E6B8A2</color>
+    <color name="primaryTextColor">#4B3621</color>
+    <color name="beige_background">#F2E6D8</color>
+    <color name="beige_primary">#E6D3B3</color>
+    <color name="beige_secondary">#D6B98C</color>
+    <color name="beige_card">#F3E3C3</color>
+    <color name="beige_accent">#C9A66B</color>
+    <color name="bottom_nav_icon_tint">#8D6E63</color>
+    <color name="bottom_nav_text_color">#5D4037</color>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="background_color">#FFF5F5F5</color>
+    <color name="primary_text">#DE000000</color>
+    <color name="secondary_text">#8A000000</color>
+    <color name="primary_color">#6200EE</color>
+    <color name="secondaryTextColor">#7C6242</color>
+    <color name="buttonTextColor">#4B3621</color>
+</resources>

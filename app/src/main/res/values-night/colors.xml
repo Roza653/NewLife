@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FFFFFFFF</color>
+    <color name="white">#FF000000</color>
+    <color name="beigeBackground">#22211F</color>
+    <color name="softBeige">#2C2620</color>
+    <color name="primaryColor">#A67C52</color>
+    <color name="secondaryColor">#8D6E63</color>
+    <color name="primaryTextColor">#FFF5F5F5</color>
+    <color name="beige_background">#22211F</color>
+    <color name="beige_primary">#3E2723</color>
+    <color name="bottom_nav_icon_tint">#BCAAA4</color>
+    <color name="bottom_nav_text_color">#FFF5F5F5</color>
+    <color name="colorPrimary">#22223B</color>
+    <color name="background_color">#FF181818</color>
+    <color name="primary_text">#FFFFFFFF</color>
+    <color name="secondary_text">#B3FFFFFF</color>
+    <color name="primary_color">#BB86FC</color>
+</resources> 

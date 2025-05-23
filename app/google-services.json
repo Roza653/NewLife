@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "382190213611",
+    "project_id": "newlife-a3add",
+    "storage_bucket": "newlife-a3add.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:382190213611:android:b7d12474c0a3d519aba1ae",
+        "android_client_info": {
+          "package_name": "com.example.newlife"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkh_3JQA5Ed2FtWGSwZC2TdebZOb_po0I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

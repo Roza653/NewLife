@@ -1,0 +1,43 @@
+<resources>
+    <string name="app_name">NewLife</string>
+    <string-array name="habit_suggestions">
+        <item>Morning run</item>
+        <item>Reading</item>
+        <item>Exercise</item>
+        <item>Meditation</item>
+        <item>Drinking water</item>
+        <item>Early rising</item>
+        <item>Language learning</item>
+        <item>Daily planning</item>
+    </string-array>
+    <string name="daily_completions">Daily Completions</string>
+    <string name="weekly_trend">Weekly Trend</string>
+    <string name="habit_name_hint">Название привычки</string>
+    <string name="save_habit_button">Сохранить привычку</string>
+    <string name="weekly_completions">Weekly Completions</string>
+    <string name="monthly_trend">Monthly Trend</string>
+    <string name="days_of_week">Mon Tue Wed Thu Fri Sat Sun</string>
+    <string name="weeks">Week 1 Week 2 Week 3 Week 4</string>
+    <string name="summary">Summary</string>
+    <string name="total_completions">Total Completions</string>
+    <string name="current_streak">Current Streak</string>
+    <string-array name="days_of_week_short">
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+        <item>Sun</item>
+    </string-array>
+
+    <string-array name="week_labels">
+        <item>Week 1</item>
+        <item>Week 2</item>
+        <item>Week 3</item>
+        <item>Week 4</item>
+    </string-array>
+
+    <string name="navigation_drawer_open">Открыть меню</string>
+    <string name="navigation_drawer_close">Закрыть меню</string>
+</resources>

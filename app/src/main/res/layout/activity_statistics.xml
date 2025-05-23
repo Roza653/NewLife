@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:title="@string/app_name"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/beige_background">
+
+            <TextView
+                android:id="@+id/tvStatisticsTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Прогресс за неделю"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/primaryColor"
+                android:gravity="center"
+                android:layout_marginBottom="12dp"
+                android:layout_marginTop="8dp"
+                android:layout_alignParentTop="true"/>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/statisticsCard"
+                android:layout_width="match_parent"
+                android:layout_height="350dp"
+                android:layout_below="@id/tvStatisticsTitle"
+                android:layout_marginBottom="16dp"
+                android:layout_marginTop="8dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="10dp"
+                app:cardBackgroundColor="@color/beige_card">
+
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/progressLineChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="8dp"
+                />
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/tvNoStats"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Для просмотра статистики добавьте привычки на главном экране"
+                android:textAlignment="center"
+                android:textSize="18sp"
+                android:textColor="#888888"
+                android:visibility="gone"
+                android:layout_below="@id/statisticsCard"
+                android:layout_marginTop="16dp"/>
+
+            <com.google.android.material.bottomnavigation.BottomNavigationView
+                android:id="@+id/bottomNavigationView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:background="@android:color/white"
+                app:menu="@menu/bottom_navigation_menu" />
+
+        </RelativeLayout>
+    </LinearLayout>
+
+</androidx.drawerlayout.widget.DrawerLayout>
