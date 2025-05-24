@@ -66,8 +66,7 @@ public class StatisticsActivity extends AppCompatActivity {
         com.google.firebase.database.DatabaseReference habitsRef = com.google.firebase.database.FirebaseDatabase.getInstance().getReference("users").child(uid).child("habits");
         habitsRef.addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
             @Override
-            public void git branch -M main
-            git push -u origin mainonDataChange(@androidx.annotation.NonNull com.google.firebase.database.DataSnapshot snapshot) {
+            public void onDataChange(@androidx.annotation.NonNull com.google.firebase.database.DataSnapshot snapshot) {
                 habits.clear();
                 int habitsWithDates = 0;
                 for (com.google.firebase.database.DataSnapshot habitSnap : snapshot.getChildren()) {
@@ -79,7 +78,6 @@ public class StatisticsActivity extends AppCompatActivity {
                         }
                     }
                 }
-                Toast.makeText(StatisticsActivity.this, "Привычек: " + habits.size() + ", с датами: " + habitsWithDates, Toast.LENGTH_LONG).show();
                 if (habits.isEmpty()) {
                     progressLineChart.setVisibility(View.GONE);
                     tvNoStats.setVisibility(View.VISIBLE);
@@ -224,7 +222,7 @@ public class StatisticsActivity extends AppCompatActivity {
         int startColor = ContextCompat.getColor(this, R.color.beige_card);
         int endColor = ContextCompat.getColor(this, R.color.beige_secondary);
 
-        LineDataSet dataSet = new LineDataSet(entries, "");
+        LineDataSet dataSet = new LineDataSet(entries, "Выполнено привычек за день");
         dataSet.setColor(lineColor);
         dataSet.setValueTextColor(valueTextColor);
         dataSet.setCircleColor(circleColor);
@@ -258,5 +256,11 @@ public class StatisticsActivity extends AppCompatActivity {
         progressLineChart.invalidate();
 
         progressLineChart.getAxisLeft().setDrawGridLines(true);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }

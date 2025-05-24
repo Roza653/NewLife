@@ -25,7 +25,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import android.widget.Switch;
-import android.widget.RelativeLayout;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -85,7 +84,7 @@ public class ProfileActivity extends AppCompatActivity {
         // Button to logout
         btnLogout.setOnClickListener(v -> {
             prefs.edit().clear().apply();
-            startActivity(new Intent(this, LoginActivity.class));
+            startActivity(new Intent(this, MainActivity.class));
             finish();
         });
 
@@ -107,23 +106,19 @@ public class ProfileActivity extends AppCompatActivity {
         if (bottomNavigationView != null) {
             bottomNavigationView.setOnItemSelectedListener(item -> {
                 int itemId = item.getItemId();
-                // Stay on profile if already selected
                 if (itemId == R.id.navigation_profile) {
                     return true;
                 } else if (itemId == R.id.navigation_home) {
-                    // Navigate to HomeActivity
                     startActivity(new Intent(this, HomeActivity.class));
                     overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
                     finish();
                     return true;
                 } else if (itemId == R.id.navigation_statistics) {
-                    // Navigate to StatisticsActivity
                     startActivity(new Intent(this, StatisticsActivity.class));
                     overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
                     finish();
                     return true;
                 } else if (itemId == R.id.navigation_facts) {
-                    // Navigate to FactsActivity
                     startActivity(new Intent(this, FactsActivity.class));
                     overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
                     finish();
@@ -131,7 +126,6 @@ public class ProfileActivity extends AppCompatActivity {
                 }
                 return false;
             });
-            // Highlight the profile item in the navigation bar
             bottomNavigationView.setSelectedItemId(R.id.navigation_profile);
         }
 
@@ -163,9 +157,11 @@ public class ProfileActivity extends AppCompatActivity {
                 // Уже находимся в профиле
             } else if (id == R.id.nav_history) {
                 startActivity(new Intent(this, HabitHistoryActivity.class));
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             } else if (id == R.id.nav_logout) {
                 prefs.edit().clear().apply();
-                startActivity(new Intent(this, LoginActivity.class));
+                startActivity(new Intent(this, MainActivity.class));
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
                 finish();
             }
             drawerLayout.closeDrawers();
@@ -199,27 +195,6 @@ public class ProfileActivity extends AppCompatActivity {
             builder.setNegativeButton("Отмена", null);
             builder.show();
         });
-
-        Switch switchDarkMode = findViewById(R.id.switchDarkMode);
-        boolean isDark = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean("dark_mode", false);
-        switchDarkMode.setChecked(isDark);
-        AppCompatDelegate.setDefaultNightMode(isDark ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
-        switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean("dark_mode", isChecked).apply();
-            AppCompatDelegate.setDefaultNightMode(isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO);
-        });
-
-        // Анимация появления блока профиля (RelativeLayout внутри CardView)
-        androidx.cardview.widget.CardView card = findViewById(R.id.profileCard);
-        RelativeLayout rel = null;
-        for (int i = 0; i < card.getChildCount(); i++) {
-            View v = card.getChildAt(i);
-            if (v instanceof RelativeLayout) {
-                rel = (RelativeLayout) v;
-                break;
-            }
-        }
-        if (rel != null) rel.animate().alpha(1f).setDuration(700).start();
     }
 
     // Handle the result from the image picker

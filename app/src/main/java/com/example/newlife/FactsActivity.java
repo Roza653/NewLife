@@ -36,6 +36,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.google.android.material.navigation.NavigationView;
 import android.view.View;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class FactsActivity extends AppCompatActivity {
 
@@ -53,6 +54,9 @@ public class FactsActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 2001;
     private ImageView ivProfileImage;
+    private SwipeRefreshLayout swipeRefreshLayout;
+
+    private List<Habit> allFirebaseHabits = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +67,24 @@ public class FactsActivity extends AppCompatActivity {
         setupNavigation();
         setupRecyclerView();
         setupSearch();
+        // --- Загружаем привычки известных людей из Firebase ---
         loadFactsFromFirebase();
+
+        // --- SwipeRefreshLayout (pull-to-refresh) ---
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setOnRefreshListener(() -> {
+                loadFactsFromFirebase();
+            });
+        }
+
+        // --- Кнопка обновления списка ---
+        ImageButton btnRefresh = findViewById(R.id.btnRefresh);
+        if (btnRefresh != null) {
+            btnRefresh.setOnClickListener(v -> {
+                loadFactsFromFirebase();
+            });
+        }
 
         // --- Профиль в Navigation Drawer (если есть) ---
         NavigationView navigationView = findViewById(R.id.navigation_view);
@@ -166,11 +187,13 @@ public class FactsActivity extends AppCompatActivity {
     private void filterHabits(String query) {
         filteredHabits.clear();
 
+        List<Habit> searchSource = allFirebaseHabits.isEmpty() ? famousHabits : allFirebaseHabits;
+
         if (query.isEmpty()) {
-            filteredHabits.addAll(famousHabits);
+            filteredHabits.addAll(famousHabits); // показываем текущие 20 на экране
         } else {
             String[] words = query.toLowerCase().split("\\s+");
-            for (Habit habit : famousHabits) {
+            for (Habit habit : searchSource) {
                 String name = habit.getName().toLowerCase();
                 boolean allMatch = true;
                 for (String word : words) {
@@ -193,28 +216,32 @@ public class FactsActivity extends AppCompatActivity {
     }
 
     private void setupNavigation() {
-        bottomNavigationView.setOnItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.navigation_facts) {
-                return true;
-            } else if (itemId == R.id.navigation_statistics) {
-                startActivity(new Intent(this, StatisticsActivity.class));
-                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
-                finish();
-                return true;
-            } else if (itemId == R.id.navigation_home) {
-                startActivity(new Intent(this, HomeActivity.class));
-                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
-                finish();
-                return true;
-            } else if (itemId == R.id.navigation_profile) {
-                startActivity(new Intent(this, ProfileActivity.class));
-                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
-                return true;
-            }
-            return false;
-        });
-        bottomNavigationView.setSelectedItemId(R.id.navigation_facts);
+        bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setOnItemSelectedListener(item -> {
+                int itemId = item.getItemId();
+                if (itemId == R.id.navigation_facts) {
+                    return true;
+                } else if (itemId == R.id.navigation_home) {
+                    startActivity(new Intent(this, HomeActivity.class));
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+                    finish();
+                    return true;
+                } else if (itemId == R.id.navigation_statistics) {
+                    startActivity(new Intent(this, StatisticsActivity.class));
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+                    finish();
+                    return true;
+                } else if (itemId == R.id.navigation_profile) {
+                    startActivity(new Intent(this, ProfileActivity.class));
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                    finish();
+                    return true;
+                }
+                return false;
+            });
+            bottomNavigationView.setSelectedItemId(R.id.navigation_facts);
+        }
     }
 
     private void loadFactsFromFirebase() {
@@ -222,8 +249,10 @@ public class FactsActivity extends AppCompatActivity {
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                allFirebaseHabits.clear();
                 famousHabits.clear();
                 allHabitNames.clear();
+                filteredHabits.clear();
 
                 for (DataSnapshot habitSnapshot : snapshot.getChildren()) {
                     String name = habitSnapshot.child("name").getValue(String.class);
@@ -237,21 +266,41 @@ public class FactsActivity extends AppCompatActivity {
                                 0,
                                 new ArrayList<>(Collections.nCopies(7, false))
                         );
-                        famousHabits.add(newHabit);
-                        allHabitNames.add(fullText);
+                        allFirebaseHabits.add(newHabit);
                     }
                 }
 
-                autoCompleteAdapter.notifyDataSetChanged();
+                // Показываем случайные 20 привычек
+                famousHabits.addAll(getRandom20Habits());
+                for (Habit h : famousHabits) {
+                    allHabitNames.add(h.getName());
+                }
                 filteredHabits.addAll(famousHabits);
+                updateAutoCompleteNames();
                 habitAdapter.notifyDataSetChanged();
+                if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+                Toast.makeText(FactsActivity.this, "Список обновлён!", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(FactsActivity.this, "Ошибка загрузки: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
             }
         });
+    }
+
+    // Получить случайные 20 привычек из allFirebaseHabits
+    private List<Habit> getRandom20Habits() {
+        List<Habit> result = new ArrayList<>();
+        if (allFirebaseHabits.size() <= 20) {
+            result.addAll(allFirebaseHabits);
+        } else {
+            List<Habit> temp = new ArrayList<>(allFirebaseHabits);
+            Collections.shuffle(temp);
+            result.addAll(temp.subList(0, 20));
+        }
+        return result;
     }
 
     private void pickProfileImage() {
@@ -280,5 +329,24 @@ public class FactsActivity extends AppCompatActivity {
             }
             finish();
         }
+    }
+
+    // --- Обновить autocomplete для поиска ---
+    private void updateAutoCompleteNames() {
+        allHabitNames.clear();
+        for (Habit h : famousHabits) {
+            allHabitNames.add(h.getName());
+        }
+        if (autoCompleteAdapter != null) {
+            autoCompleteAdapter.clear();
+            autoCompleteAdapter.addAll(allHabitNames);
+            autoCompleteAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 }

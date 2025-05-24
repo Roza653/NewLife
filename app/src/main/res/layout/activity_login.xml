@@ -42,7 +42,6 @@
         android:layout_marginBottom="20dp"
         android:padding="16dp"
         android:layout_gravity="center"/>
-
     <!-- Register Text Link -->
     <TextView
         android:id="@+id/registerTextView"

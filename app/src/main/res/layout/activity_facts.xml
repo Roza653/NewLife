@@ -32,15 +32,30 @@
             android:src="@android:drawable/ic_menu_search"
             android:contentDescription="Поиск"
             android:layout_gravity="center_vertical"/>
+
+        <ImageButton
+            android:id="@+id/btnRefresh"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_popup_sync"
+            android:contentDescription="Обновить"
+            android:layout_gravity="center_vertical"/>
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/factsRecyclerView"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/searchBarLayout"
-        android:layout_above="@id/bottomNavigationView"
-        android:padding="16dp" />
+        android:layout_above="@id/bottomNavigationView">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/factsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
@@ -48,4 +63,5 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         app:menu="@menu/bottom_navigation_menu" />
+    
 </RelativeLayout>

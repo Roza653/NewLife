@@ -115,12 +115,15 @@ public class HomeActivity extends AppCompatActivity implements HabitAdapter.OnHa
             int id = item.getItemId();
             if (id == R.id.nav_profile) {
                 startActivity(new Intent(this, ProfileActivity.class));
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             } else if (id == R.id.nav_history) {
                 startActivity(new Intent(this, HabitHistoryActivity.class));
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             } else if (id == R.id.nav_logout) {
                 SharedPreferences prefs = getSharedPreferences(HABITS_PREFS, MODE_PRIVATE);
                 prefs.edit().clear().apply();
-                startActivity(new Intent(this, LoginActivity.class));
+                startActivity(new Intent(this, MainActivity.class));
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
                 finish();
             }
             drawerLayout.closeDrawers();
@@ -182,6 +185,10 @@ public class HomeActivity extends AppCompatActivity implements HabitAdapter.OnHa
 
     private void loadHabitsList() {
         habits = loadHabits();
+        if (habits == null || habits.isEmpty()) {
+            // Если SharedPreferences пусты, пробуем загрузить из SQLite
+            habits = dbHelper.getAllHabits();
+        }
         if (habits == null) habits = new ArrayList<>();
     }
 
@@ -220,16 +227,15 @@ public class HomeActivity extends AppCompatActivity implements HabitAdapter.OnHa
         if (bottomNavigationView != null) {
             bottomNavigationView.setOnItemSelectedListener(item -> {
                 if (item == null) return false;
-
                 int itemId = item.getItemId();
                 animateNavigationItems(itemId);
                 if (itemId == R.id.navigation_home) {
                     return true;
                 } else if (itemId == R.id.navigation_statistics) {
                     Intent intent = new Intent(this, StatisticsActivity.class);
-                    intent.putParcelableArrayListExtra("habits", new ArrayList<>(habits)); // Pass habits list
+                    intent.putParcelableArrayListExtra("habits", new ArrayList<>(habits));
                     startActivity(intent);
-                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
                     finish();
                     return true;
                 } else if (itemId == R.id.navigation_facts) {
@@ -245,7 +251,6 @@ public class HomeActivity extends AppCompatActivity implements HabitAdapter.OnHa
                 }
                 return false;
             });
-
             bottomNavigationView.setSelectedItemId(R.id.navigation_home);
         }
     }
@@ -305,10 +310,17 @@ public class HomeActivity extends AppCompatActivity implements HabitAdapter.OnHa
 
     @Override
     public void onDeleteHabit(Habit habit, int position) {
-        habits.remove(position);
-        saveHabits();
-        habitAdapter.notifyItemRemoved(position);
-        Toast.makeText(this, "Привычка удалена", Toast.LENGTH_SHORT).show();
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Удалить привычку?")
+            .setMessage("Вы действительно хотите удалить привычку '" + habit.getName() + "'?")
+            .setPositiveButton("Удалить", (dialog, which) -> {
+                habits.remove(position);
+                saveHabits();
+                habitAdapter.notifyItemRemoved(position);
+                Toast.makeText(this, "Привычка удалена", Toast.LENGTH_SHORT).show();
+            })
+            .setNegativeButton("Отмена", null)
+            .show();
     }
 
     @Override

@@ -13,7 +13,7 @@
     <item
         android:id="@+id/navigation_facts"
         android:icon="@android:drawable/ic_menu_info_details"
-        android:title="Интересные факты" />
+        android:title="факты" />
 
     <item
         android:id="@+id/navigation_profile"

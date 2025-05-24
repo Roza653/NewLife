@@ -318,34 +318,46 @@ public class CreateHabitActivity extends AppCompatActivity {
     }
 
     private void scheduleNotification(Habit habit) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, habit.getHour());
-        calendar.set(Calendar.MINUTE, habit.getMinute());
-        calendar.set(Calendar.SECOND, 0);
-
-        if (calendar.before(Calendar.getInstance())) {
-            calendar.add(Calendar.DAY_OF_YEAR, 1);
-        }
-
-        Intent intent = new Intent(this, NotificationReceiver.class);
-        intent.putExtra("title", "Привычка: " + habit.getName());
-        intent.putExtra("message", "Пора выполнить привычку!");
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this,
-                habit.getName().hashCode(),
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
+        List<Boolean> days = habit.getDays();
+        if (days == null || days.size() != 7) return;
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        if (alarmManager != null) {
-            alarmManager.setRepeating(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.getTimeInMillis(),
-                    AlarmManager.INTERVAL_DAY,
-                    pendingIntent
-            );
+
+        for (int dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+            if (days.get(dayOfWeek)) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.HOUR_OF_DAY, habit.getHour());
+                calendar.set(Calendar.MINUTE, habit.getMinute());
+                calendar.set(Calendar.SECOND, 0);
+
+                int today = calendar.get(Calendar.DAY_OF_WEEK) - 1; // 0 - воскресенье
+                int daysUntilAlarm = (dayOfWeek - today + 7) % 7;
+                if (daysUntilAlarm == 0 && calendar.before(Calendar.getInstance())) {
+                    daysUntilAlarm = 7;
+                }
+                calendar.add(Calendar.DAY_OF_YEAR, daysUntilAlarm);
+
+                Intent intent = new Intent(this, NotificationReceiver.class);
+                intent.putExtra("title", "Привычка: " + habit.getName());
+                intent.putExtra("message", "Пора выполнить привычку!");
+                intent.putExtra("habit_id", habit.getId());
+                intent.putExtra("day_of_week", dayOfWeek);
+
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                        this,
+                        habit.getName().hashCode() + dayOfWeek,
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                );
+
+                if (alarmManager != null) {
+                    alarmManager.setExactAndAllowWhileIdle(
+                            AlarmManager.RTC_WAKEUP,
+                            calendar.getTimeInMillis(),
+                            pendingIntent
+                    );
+                }
+            }
         }
     }
 

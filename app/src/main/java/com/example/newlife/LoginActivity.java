@@ -42,17 +42,6 @@ public class LoginActivity extends AppCompatActivity {
             Button loginButton = findViewById(R.id.loginButton);
             TextView registerTextView = findViewById(R.id.registerTextView);
 
-            // Гостевой вход
-            Button btnGuestLogin = findViewById(R.id.btnGuestLogin);
-            btnGuestLogin.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String email = "individualproject2025@gmail.com";
-                    String password = "Samsung2025";
-                    loginUser(email, password);
-                }
-            });
-
             // --- Подставляем сохранённые email и пароль ---
             SharedPreferences prefs = getSharedPreferences("habits_prefs", MODE_PRIVATE);
             String savedEmail = prefs.getString("saved_email", "");

@@ -1,5 +1,6 @@
 package com.example.newlife;
 
+import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -8,12 +9,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
 import com.example.newlife.MainActivity;
 
+import java.util.Calendar;
 import java.util.Random;
 
 public class NotificationReceiver extends BroadcastReceiver {
@@ -23,20 +26,46 @@ public class NotificationReceiver extends BroadcastReceiver {
     // Array of 10 motivational messages (in Russian)
     private final String[] MOTIVATIONAL_MESSAGES = {
             "Каждый маленький шаг приближает тебя к большой цели! Продолжай двигаться вперёд!",
-            "Ты сильнее, чем думаешь! Сегодня - идеальный день для новых достижений!",
+            "Ты сильнее, чем думаешь! Сегодня — идеальный день для новых достижений!",
             "Не сдавайся! Именно сегодня ты можешь сделать то, что не смог вчера!",
-            "Успех - это сумма маленьких усилий, повторяемых изо дня в день!",
+            "Успех — это сумма маленьких усилий, повторяемых изо дня в день!",
             "Ты уникален! Миру нужно именно то, что можешь сделать только ты!",
-            "Сложности - это возможности стать лучше! Прими вызов!",
+            "Сложности — это возможности стать лучше! Прими вызов!",
             "Верь в себя! Ты способен на большее, чем можешь представить!",
-            "Сегодняшние усилия - завтрашние победы! Не останавливайся!",
-            "Каждая проблема - это скрытая возможность. Найди её!",
+            "Сегодняшние усилия — завтрашние победы! Не останавливайся!",
+            "Каждая проблема — это скрытая возможность. Найди её!",
             "Ты ближе к цели, чем был вчера! Продолжай идти!"
     };
 
     @Override
     public void onReceive(Context context, Intent intent) {
         showRandomMotivationalNotification(context);
+        // После показа уведомления пересоздать alarm на следующий раз
+        int habitId = intent.getIntExtra("habit_id", -1);
+        int dayOfWeek = intent.getIntExtra("day_of_week", -1);
+        if (habitId != -1 && dayOfWeek != -1) {
+            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(System.currentTimeMillis());
+            calendar.set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.HOUR_OF_DAY));
+            calendar.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE));
+            calendar.set(Calendar.SECOND, 0);
+            calendar.add(Calendar.DAY_OF_YEAR, 7); // Следующая неделя
+
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                    context,
+                    habitId + dayOfWeek,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+            if (alarmManager != null) {
+                alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        calendar.getTimeInMillis(),
+                        pendingIntent
+                );
+            }
+        }
     }
 
     private void showRandomMotivationalNotification(Context context) {
