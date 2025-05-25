@@ -60,6 +60,11 @@ public class HabitDetailsActivity extends AppCompatActivity {
 
     // Редактировать привычку
     private void editHabit() {
+        // ВАЖНО: если появится возможность редактировать дни недели, добавьте проверку как в CreateHabitActivity:
+        // List<Boolean> days = ... // собрать из чекбоксов
+        // boolean atLeastOneDay = false;
+        // for (boolean checked : days) { if (checked) { atLeastOneDay = true; break; } }
+        // if (!atLeastOneDay) { Toast.makeText(this, "Пожалуйста, выберите хотя бы один день недели!", Toast.LENGTH_SHORT).show(); return; }
         // Здесь откроется экран для редактирования привычки
         Intent intent = new Intent(this, EditHabitActivity.class);
         String habitJson = new Gson().toJson(habit);

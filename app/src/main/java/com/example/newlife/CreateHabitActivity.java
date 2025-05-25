@@ -124,6 +124,19 @@ public class CreateHabitActivity extends AppCompatActivity {
         for (int i = 0; i < 7; i++) {
             days.add(dayCheckBoxes[i].isChecked());
         }
+        // Новая проверка: хотя бы один день должен быть выбран
+        boolean atLeastOneDay = false;
+        for (boolean checked : days) {
+            if (checked) {
+                atLeastOneDay = true;
+                break;
+            }
+        }
+        if (!atLeastOneDay) {
+            // Можно использовать Toast или ошибку на чекбоксах
+            android.widget.Toast.makeText(this, "Пожалуйста, выберите хотя бы один день недели!", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         Habit habit;
         if (editingHabit != null) {

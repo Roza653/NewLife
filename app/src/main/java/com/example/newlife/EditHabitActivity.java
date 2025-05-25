@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.TimePicker;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class EditHabitActivity extends AppCompatActivity {
     private ArrayAdapter<String> adapter;
     private Habit habit;
     private int habitPosition;
+    private CheckBox[] dayCheckBoxes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +48,15 @@ public class EditHabitActivity extends AppCompatActivity {
         nameAutoCompleteTextView = findViewById(R.id.nameAutoCompleteTextView);
         timePicker = findViewById(R.id.timePicker);
         timePicker.setIs24HourView(true); // Use 24-hour format
+        dayCheckBoxes = new CheckBox[]{
+            findViewById(R.id.mondayCheckBox),
+            findViewById(R.id.tuesdayCheckBox),
+            findViewById(R.id.wednesdayCheckBox),
+            findViewById(R.id.thursdayCheckBox),
+            findViewById(R.id.fridayCheckBox),
+            findViewById(R.id.saturdayCheckBox),
+            findViewById(R.id.sundayCheckBox)
+        };
     }
 
     private void setupAutoComplete() {
@@ -76,10 +87,28 @@ public class EditHabitActivity extends AppCompatActivity {
         int hour = timePicker.getHour();
         int minute = timePicker.getMinute();
 
+        // Новая логика: собираем дни недели
+        List<Boolean> days = new ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            days.add(dayCheckBoxes[i].isChecked());
+        }
+        boolean atLeastOneDay = false;
+        for (boolean checked : days) {
+            if (checked) {
+                atLeastOneDay = true;
+                break;
+            }
+        }
+        if (!atLeastOneDay) {
+            android.widget.Toast.makeText(this, "Пожалуйста, выберите хотя бы один день недели!", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // Update habit details
         habit.setName(name);
         habit.setHour(hour);
         habit.setMinute(minute);
+        habit.setDays(days);
 
         // Save the updated habit name for future suggestions
         CreateHabitActivity.HabitSuggestions.saveHabitName(this, name);
