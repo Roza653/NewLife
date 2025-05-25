@@ -58,6 +58,11 @@ public class FactsActivity extends AppCompatActivity {
 
     private List<Habit> allFirebaseHabits = new ArrayList<>();
 
+    // --- ДОБАВЛЯЮ новые поля для FactHabit ---
+    private FactHabitAdapter factHabitAdapter;
+    private List<FactHabit> allFactHabits = new ArrayList<>();
+    private List<FactHabit> filteredFactHabits = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,9 +70,8 @@ public class FactsActivity extends AppCompatActivity {
 
         initializeViews();
         setupNavigation();
-        setupRecyclerView();
+        setupFactHabitRecyclerView();
         setupSearch();
-        // --- Загружаем привычки известных людей из Firebase ---
         loadFactsFromFirebase();
 
         // --- SwipeRefreshLayout (pull-to-refresh) ---
@@ -81,9 +85,7 @@ public class FactsActivity extends AppCompatActivity {
         // --- Кнопка обновления списка ---
         ImageButton btnRefresh = findViewById(R.id.btnRefresh);
         if (btnRefresh != null) {
-            btnRefresh.setOnClickListener(v -> {
-                loadFactsFromFirebase();
-            });
+            btnRefresh.setOnClickListener(v -> loadFactsFromFirebase());
         }
 
         // --- Профиль в Navigation Drawer (если есть) ---
@@ -113,30 +115,16 @@ public class FactsActivity extends AppCompatActivity {
         dbHelper = new HabitDatabaseHelper(this); // Инициализация базы данных
     }
 
-    private void setupRecyclerView() {
-        habitAdapter = new HabitAdapter(filteredHabits, new HabitAdapter.OnHabitClickListener() {
-            @Override
-            public void onHabitClick(int position) {
-                Habit selectedHabit = filteredHabits.get(position);
-                String fullName = selectedHabit.getName();
-                String habitOnly = fullName;
-                int colonIndex = fullName.indexOf(":");
-                if (colonIndex != -1 && colonIndex + 1 < fullName.length()) {
-                    habitOnly = fullName.substring(colonIndex + 1).trim();
-                }
-                Intent intent = new Intent(FactsActivity.this, CreateHabitActivity.class);
-                intent.putExtra("habit_name", habitOnly);
-                startActivityForResult(intent, 1);
-            }
-
-            @Override
-            public void onHabitChecked(int position, boolean isChecked) {
-                // Не используется здесь
-            }
-        }, false, true); // showCheckbox=false, чекбоксы не отображаются
-
+    private void setupFactHabitRecyclerView() {
+        factsRecyclerView = findViewById(R.id.factsRecyclerView);
+        factHabitAdapter = new FactHabitAdapter(filteredFactHabits, factHabit -> {
+            // Открываем CreateHabitActivity и передаём habit_for_list как имя привычки
+            Intent intent = new Intent(FactsActivity.this, CreateHabitActivity.class);
+            intent.putExtra("habit_name", factHabit.habitForList);
+            startActivityForResult(intent, 1);
+        });
         factsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        factsRecyclerView.setAdapter(habitAdapter);
+        factsRecyclerView.setAdapter(factHabitAdapter);
     }
 
     private void setupSearch() {
@@ -152,13 +140,13 @@ public class FactsActivity extends AppCompatActivity {
 
         btnSearch.setOnClickListener(v -> {
             String query = searchAutoComplete.getText().toString().trim();
-            filterHabits(query);
+            filterFactHabits(query);
         });
 
         searchAutoComplete.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
                 String query = searchAutoComplete.getText().toString().trim();
-                filterHabits(query);
+                filterFactHabits(query);
                 return true;
             }
             return false;
@@ -167,12 +155,8 @@ public class FactsActivity extends AppCompatActivity {
         searchAutoComplete.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // Не фильтруем автоматически, только по кнопке или Enter
-            }
-
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override
             public void afterTextChanged(Editable s) {}
         });
@@ -180,37 +164,32 @@ public class FactsActivity extends AppCompatActivity {
         searchAutoComplete.setOnItemClickListener((parent, view, position, id) -> {
             String selected = (String) parent.getItemAtPosition(position);
             searchAutoComplete.setText(selected);
-            filterHabits(selected);
+            filterFactHabits(selected);
         });
     }
 
-    private void filterHabits(String query) {
-        filteredHabits.clear();
-
-        List<Habit> searchSource = allFirebaseHabits.isEmpty() ? famousHabits : allFirebaseHabits;
-
+    private void filterFactHabits(String query) {
+        filteredFactHabits.clear();
         if (query.isEmpty()) {
-            filteredHabits.addAll(famousHabits); // показываем текущие 20 на экране
+            filteredFactHabits.addAll(allFactHabits);
         } else {
             String[] words = query.toLowerCase().split("\\s+");
-            for (Habit habit : searchSource) {
-                String name = habit.getName().toLowerCase();
+            for (FactHabit fact : allFactHabits) {
+                String name = fact.celebrityName != null ? fact.celebrityName.toLowerCase() : "";
+                String orig = fact.originalHabit != null ? fact.originalHabit.toLowerCase() : "";
+                String forList = fact.habitForList != null ? fact.habitForList.toLowerCase() : "";
                 boolean allMatch = true;
                 for (String word : words) {
-                    if (!name.contains(word)) {
+                    if (!name.contains(word) && !orig.contains(word) && !forList.contains(word)) {
                         allMatch = false;
                         break;
                     }
                 }
-                if (allMatch) {
-                    filteredHabits.add(habit);
-                }
+                if (allMatch) filteredFactHabits.add(fact);
             }
         }
-
-        habitAdapter.notifyDataSetChanged();
-
-        if (filteredHabits.isEmpty()) {
+        factHabitAdapter.notifyDataSetChanged();
+        if (filteredFactHabits.isEmpty()) {
             Toast.makeText(this, "Совпадений не найдено", Toast.LENGTH_SHORT).show();
         }
     }
@@ -245,62 +224,33 @@ public class FactsActivity extends AppCompatActivity {
     }
 
     private void loadFactsFromFirebase() {
-        databaseReference = FirebaseDatabase.getInstance().getReference("famous_habits/famous_habits");
+        databaseReference = FirebaseDatabase.getInstance().getReference();
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                allFirebaseHabits.clear();
-                famousHabits.clear();
-                allHabitNames.clear();
-                filteredHabits.clear();
-
+                allFactHabits.clear();
+                filteredFactHabits.clear();
                 for (DataSnapshot habitSnapshot : snapshot.getChildren()) {
                     String name = habitSnapshot.child("name").getValue(String.class);
-                    String habit = habitSnapshot.child("habit").getValue(String.class);
-
-                    if (name != null && habit != null) {
-                        String fullText = name + ": " + habit;
-                        Habit newHabit = new Habit(
-                                fullText,
-                                10,
-                                0,
-                                new ArrayList<>(Collections.nCopies(7, false))
-                        );
-                        allFirebaseHabits.add(newHabit);
+                    String originalHabit = habitSnapshot.child("original_habit").getValue(String.class);
+                    String habitForList = habitSnapshot.child("habit_for_list").getValue(String.class);
+                    if (name != null && originalHabit != null && habitForList != null) {
+                        FactHabit factHabit = new FactHabit(name, originalHabit, habitForList);
+                        allFactHabits.add(factHabit);
                     }
                 }
-
-                // Показываем случайные 20 привычек
-                famousHabits.addAll(getRandom20Habits());
-                for (Habit h : famousHabits) {
-                    allHabitNames.add(h.getName());
-                }
-                filteredHabits.addAll(famousHabits);
-                updateAutoCompleteNames();
-                habitAdapter.notifyDataSetChanged();
+                // Перемешиваем и берём только 20
+                Collections.shuffle(allFactHabits);
+                List<FactHabit> twenty = allFactHabits.size() > 20 ? allFactHabits.subList(0, 20) : new ArrayList<>(allFactHabits);
+                filteredFactHabits.clear();
+                filteredFactHabits.addAll(twenty);
+                factHabitAdapter.notifyDataSetChanged();
                 if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
                 Toast.makeText(FactsActivity.this, "Список обновлён!", Toast.LENGTH_SHORT).show();
             }
-
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(FactsActivity.this, "Ошибка загрузки: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
-            }
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
-    }
-
-    // Получить случайные 20 привычек из allFirebaseHabits
-    private List<Habit> getRandom20Habits() {
-        List<Habit> result = new ArrayList<>();
-        if (allFirebaseHabits.size() <= 20) {
-            result.addAll(allFirebaseHabits);
-        } else {
-            List<Habit> temp = new ArrayList<>(allFirebaseHabits);
-            Collections.shuffle(temp);
-            result.addAll(temp.subList(0, 20));
-        }
-        return result;
     }
 
     private void pickProfileImage() {

@@ -50,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
                 .signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
+                        // Сохраняем email гостя
+                        getSharedPreferences("habits_prefs", MODE_PRIVATE).edit().putString("user_email", email).apply();
                         startActivity(new Intent(this, HomeActivity.class));
                         finish();
                     } else {

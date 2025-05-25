@@ -125,6 +125,7 @@ public class RegisterActivity extends AppCompatActivity {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             saveUserNameToDatabase(user.getUid(), name);
+                            getSharedPreferences("habits_prefs", MODE_PRIVATE).edit().putString("user_email", email).apply();
                             sendEmailVerification(user);
                         }
                     } else {

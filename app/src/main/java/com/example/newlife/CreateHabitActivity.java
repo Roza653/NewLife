@@ -66,7 +66,6 @@ public class CreateHabitActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(editingHabit == null ? "Создать привычку" : "Редактировать привычку");
         }
 
         setupAllDaysCheckBox();

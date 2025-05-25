@@ -45,6 +45,9 @@ import android.widget.ImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import androidx.annotation.NonNull;
+import com.bumptech.glide.Glide;
+import java.io.File;
 
 
 public class HomeActivity extends AppCompatActivity implements HabitAdapter.OnHabitClickListener, HabitOptionsDialogFragment.HabitOptionsListener {
@@ -86,16 +89,19 @@ public class HomeActivity extends AppCompatActivity implements HabitAdapter.OnHa
         ivProfileImage = headerView.findViewById(R.id.ivProfileImage);
         String userName = getSharedPreferences(HABITS_PREFS, MODE_PRIVATE).getString(USER_NAME_KEY, "Пользователь");
         tvUserName.setText(userName);
-        String userEmail = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getEmail() : "";
-        tvUserEmail.setText(userEmail != null ? userEmail : "");
+        String userEmail = getSharedPreferences(HABITS_PREFS, MODE_PRIVATE).getString("user_email", "");
+        tvUserEmail.setText(userEmail);
 
         // Загрузка сохранённого аватара
         String imageUri = getSharedPreferences(HABITS_PREFS, MODE_PRIVATE).getString("profile_image_uri", null);
         if (imageUri != null) {
-            try {
-                ivProfileImage.setImageURI(Uri.parse(imageUri));
-            } catch (Exception e) {
-                // If access is denied or file is missing, show default image
+            File imgFile = new File(imageUri);
+            if (imgFile.exists()) {
+                Glide.with(this)
+                    .load(imgFile)
+                    .circleCrop()
+                    .into(ivProfileImage);
+            } else {
                 ivProfileImage.setImageResource(R.drawable.ic_person);
             }
         } else {
@@ -133,8 +139,9 @@ public class HomeActivity extends AppCompatActivity implements HabitAdapter.OnHa
         // Initialize components
         initializeSharedPreferences();
         initializeDatabaseHelper();
-        loadHabitsList();
+        habits = new ArrayList<>();
         setupRecyclerView();
+        loadHabitsFromFirebase();
         setupFloatingActionButton();
         setupBottomNavigationView();
         handleNewHabitFromIntent(getIntent());
@@ -181,15 +188,6 @@ public class HomeActivity extends AppCompatActivity implements HabitAdapter.OnHa
             Toast.makeText(this, "Error initializing database", Toast.LENGTH_SHORT).show();
             finish();
         }
-    }
-
-    private void loadHabitsList() {
-        habits = loadHabits();
-        if (habits == null || habits.isEmpty()) {
-            // Если SharedPreferences пусты, пробуем загрузить из SQLite
-            habits = dbHelper.getAllHabits();
-        }
-        if (habits == null) habits = new ArrayList<>();
     }
 
     private void setupRecyclerView() {
@@ -274,15 +272,29 @@ public class HomeActivity extends AppCompatActivity implements HabitAdapter.OnHa
         return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
     }
 
-    private List<Habit> loadHabits() {
-        if (sharedPreferences == null) return new ArrayList<>();
-
-        String json = sharedPreferences.getString(HABITS_KEY, "");
-        if (json.isEmpty()) return new ArrayList<>();
-
-        Type type = new TypeToken<List<Habit>>() {
-        }.getType();
-        return new Gson().fromJson(json, type);
+    /**
+     * Загрузка привычек из Firebase
+     */
+    private void loadHabitsFromFirebase() {
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference habitsRef = FirebaseDatabase.getInstance().getReference("users").child(uid).child("habits");
+        habitsRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                habits.clear();
+                for (com.google.firebase.database.DataSnapshot habitSnap : snapshot.getChildren()) {
+                    Habit habit = habitSnap.getValue(Habit.class);
+                    if (habit != null) {
+                        habits.add(habit);
+                    }
+                }
+                habitAdapter.notifyDataSetChanged();
+            }
+            @Override
+            public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {
+                Toast.makeText(HomeActivity.this, "Ошибка загрузки данных", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void saveHabits() {

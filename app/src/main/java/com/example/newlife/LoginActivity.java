@@ -108,6 +108,7 @@ public class LoginActivity extends AppCompatActivity {
                             SharedPreferences.Editor editor = prefs.edit();
                             editor.putString("saved_email", email);
                             editor.putString("saved_password", password);
+                            editor.putString("user_email", email);
                             editor.apply();
                             // --- конец блока ---
 

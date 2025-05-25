@@ -28,6 +28,7 @@ import android.widget.Switch;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import com.bumptech.glide.Glide;
 
 public class ProfileActivity extends AppCompatActivity {
     // Request code for image picker intent
@@ -55,6 +56,7 @@ public class ProfileActivity extends AppCompatActivity {
         Button btnHistory = findViewById(R.id.btnHistory);
         Button btnLogout = findViewById(R.id.btnLogout);
         Button btnSendFeedback = findViewById(R.id.btnSendFeedback);
+        Button btnDeletePhoto = findViewById(R.id.btnDeletePhoto);
         TextView tv = findViewById(R.id.tvProfileTitle);
         tv.setText("Профиль пользователя");
 
@@ -67,7 +69,10 @@ public class ProfileActivity extends AppCompatActivity {
         if (imagePath != null) {
             File imgFile = new File(imagePath);
             if (imgFile.exists()) {
-                ivProfilePhoto.setImageURI(Uri.fromFile(imgFile));
+                Glide.with(this)
+                    .load(Uri.fromFile(imgFile))
+                    .circleCrop()
+                    .into(ivProfilePhoto);
             }
         }
 
@@ -99,6 +104,13 @@ public class ProfileActivity extends AppCompatActivity {
             } catch (android.content.ActivityNotFoundException ex) {
                 Toast.makeText(this, "Нет установленного почтового клиента", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        // Button to delete the profile photo
+        btnDeletePhoto.setOnClickListener(v -> {
+            prefs.edit().remove(PROFILE_IMAGE_URI).apply();
+            ivProfilePhoto.setImageResource(R.drawable.ic_person);
+            Toast.makeText(this, "Фото профиля удалено", Toast.LENGTH_SHORT).show();
         });
 
         // Bottom navigation setup for switching between main screens
@@ -139,18 +151,6 @@ public class ProfileActivity extends AppCompatActivity {
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-        // Имя и email в header бокового меню
-        View headerView = navigationView.getHeaderView(0);
-        TextView tvUserName = headerView.findViewById(R.id.tvUserName);
-        TextView tvUserEmail = headerView.findViewById(R.id.tvUserEmail);
-        tvUserName.setText(userName);
-        String userEmail = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getEmail() : "";
-        tvUserEmail.setText(userEmail != null ? userEmail : "");
-
-        // Email в карточке профиля
-        TextView tvProfileEmail = findViewById(R.id.tvProfileEmail);
-        tvProfileEmail.setText(userEmail != null ? userEmail : "");
-
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_profile) {
@@ -167,6 +167,29 @@ public class ProfileActivity extends AppCompatActivity {
             drawerLayout.closeDrawers();
             return true;
         });
+
+        // Имя и email в header бокового меню
+        View headerView = navigationView.getHeaderView(0);
+        TextView tvUserName = headerView.findViewById(R.id.tvUserName);
+        TextView tvUserEmail = headerView.findViewById(R.id.tvUserEmail);
+        ImageView ivNavHeaderPhoto = headerView.findViewById(R.id.ivProfileImage);
+        tvUserName.setText(userName);
+        String userEmail = prefs.getString("user_email", "");
+        tvUserEmail.setText(userEmail);
+        // Фото профиля в nav_header
+        String imagePathNav = prefs.getString(PROFILE_IMAGE_URI, null);
+        if (imagePathNav != null) {
+            File imgFileNav = new File(imagePathNav);
+            if (imgFileNav.exists()) {
+                Glide.with(this)
+                    .load(Uri.fromFile(imgFileNav))
+                    .circleCrop()
+                    .into(ivNavHeaderPhoto);
+            }
+        }
+        // Email в карточке профиля
+        TextView tvProfileEmail = findViewById(R.id.tvProfileEmail);
+        tvProfileEmail.setText(userEmail);
 
         tvProfileName.setOnClickListener(v -> {
             // Открыть диалог для изменения имени
@@ -204,7 +227,6 @@ public class ProfileActivity extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri selectedImageUri = data.getData();
             try {
-                // Копируем изображение во внутреннее хранилище приложения
                 String fileName = "profile_photo_" + System.currentTimeMillis() + ".jpg";
                 File destFile = new File(getFilesDir(), fileName);
                 try (InputStream in = getContentResolver().openInputStream(selectedImageUri);
@@ -215,9 +237,11 @@ public class ProfileActivity extends AppCompatActivity {
                         out.write(buffer, 0, bytesRead);
                     }
                 }
-                // Сохраняем путь к новому файлу
                 prefs.edit().putString(PROFILE_IMAGE_URI, destFile.getAbsolutePath()).apply();
-                ivProfilePhoto.setImageURI(Uri.fromFile(destFile));
+                Glide.with(this)
+                    .load(Uri.fromFile(destFile))
+                    .circleCrop()
+                    .into(ivProfilePhoto);
                 Toast.makeText(this, "Фото профиля обновлено", Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
                 e.printStackTrace();
