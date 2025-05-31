@@ -37,11 +37,11 @@ public class HabitHistoryActivity extends AppCompatActivity {
 
         adapter.setOnHabitClickListener((habit, position) -> {
             new android.app.AlertDialog.Builder(this)
-                .setTitle("Удалить привычку?")
-                .setMessage("Вы действительно хотите удалить привычку '" + habit.getName() + "'?")
-                .setPositiveButton("Удалить", (dialog, which) -> deleteHabit(habit, position))
-                .setNegativeButton("Отмена", null)
-                .show();
+                    .setTitle("Удалить привычку?")
+                    .setMessage("Вы действительно хотите удалить привычку '" + habit.getName() + "'?")
+                    .setPositiveButton("Удалить", (dialog, which) -> deleteHabit(habit, position))
+                    .setNegativeButton("Отмена", null)
+                    .show();
         });
 
         loadHabitsFromFirebase();
@@ -94,8 +94,8 @@ public class HabitHistoryActivity extends AppCompatActivity {
                 adapter.notifyItemRemoved(position);
                 Toast.makeText(this, "Привычка удалена", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "Ошибка удаления", Toast.LENGTH_SHORT).show();
+                Toast.makeText(thigit inits, "Ошибка удаления", Toast.LENGTH_SHORT).show();
             }
         });
     }
-} 
+}

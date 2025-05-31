@@ -98,9 +98,9 @@ public class HomeActivity extends AppCompatActivity implements HabitAdapter.OnHa
             File imgFile = new File(imageUri);
             if (imgFile.exists()) {
                 Glide.with(this)
-                    .load(imgFile)
-                    .circleCrop()
-                    .into(ivProfileImage);
+                        .load(imgFile)
+                        .circleCrop()
+                        .into(ivProfileImage);
             } else {
                 ivProfileImage.setImageResource(R.drawable.ic_person);
             }
@@ -323,16 +323,16 @@ public class HomeActivity extends AppCompatActivity implements HabitAdapter.OnHa
     @Override
     public void onDeleteHabit(Habit habit, int position) {
         new androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Удалить привычку?")
-            .setMessage("Вы действительно хотите удалить привычку '" + habit.getName() + "'?")
-            .setPositiveButton("Удалить", (dialog, which) -> {
-                habits.remove(position);
-                saveHabits();
-                habitAdapter.notifyItemRemoved(position);
-                Toast.makeText(this, "Привычка удалена", Toast.LENGTH_SHORT).show();
-            })
-            .setNegativeButton("Отмена", null)
-            .show();
+                .setTitle("Удалить привычку?")
+                .setMessage("Вы действительно хотите удалить привычку '" + habit.getName() + "'?")
+                .setPositiveButton("Удалить", (dialog, which) -> {
+                    habits.remove(position);
+                    saveHabits();
+                    habitAdapter.notifyItemRemoved(position);
+                    Toast.makeText(this, "Привычка удалена", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Отмена", null)
+                .show();
     }
 
     @Override
